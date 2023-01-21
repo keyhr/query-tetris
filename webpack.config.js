@@ -11,11 +11,17 @@ module.exports = {
       {
         test: /\.tsx?$/,
         use: "ts-loader"
+      },
+      {
+        test: /\.scss$/,
+        use: [ "style-loader", "css-loader", "sass-loader" ]
       }
     ]
   },
+  "plugins": [
+  ],
   "resolve": {
     "extensions": [".ts", ".tsx", ".js", ".json"]
   },
   "target": ["web", "es5"]
-}
+};

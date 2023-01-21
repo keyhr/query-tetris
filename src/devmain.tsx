@@ -1,11 +1,7 @@
-import * as React from "react";
-import * as ReactDOM from "react-dom";
+import React from "react";
+import { createRoot } from "react-dom/client";
 import { App } from "./App";
 
-/** @ts-ignore */
-request.html((_, div) => {
-  div.innerHTML = `
-    <div id="app"></div>
-  `;
-  ReactDOM.render(<App/>, document.querySelector("#app"));
-}).run();
+const container = document.getElementById("root") as HTMLElement;
+const root = createRoot(container);
+root.render(<App />);

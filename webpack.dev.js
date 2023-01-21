@@ -1,11 +1,14 @@
 /** @type {import('webpack').Configuration} */
 
-const path = require("path")
-const config = require("./webpack.config")
+const path = require("path");
+const config = require("./webpack.config");
 
-config.entry = "./src/devmain.tsx"
+config.entry = "./src/devmain.tsx";
 config.devServer = {
-  "contentBase": path.join(__dirname, "dist")
-}
+  "static": {
+    "directory": path.join(__dirname, "dist"),
+  },
+  "port": 3000,
+};
 
-module.exports = config
+module.exports = config;
