@@ -14,10 +14,20 @@ export class Board {
   colCount: number;
   rowCount: number;
 
+  nextMinos: Tetrimino[] = [
+    new Tetrimino(),
+    new Tetrimino(),
+    new Tetrimino()
+  ];
+
   mino: Tetrimino = new Tetrimino();
   minoPos: Coordinate = {x: 0, y: 0};
 
   holdMino?: Tetrimino;
+
+  canHold = true;
+
+  isOver = false;
 
   constructor(colCount = 10, rowCount = 20) {
     this.cells = Array(rowCount);
@@ -31,21 +41,151 @@ export class Board {
     this.rowCount = rowCount;
 
     // TODO: give first mino
-    this.generateMino();
+    this.setNewMino();
   }
 
-  generateMino(type?: TetriminoType) {
-    this.mino = new Tetrimino(type);
-    this.minoPos = {x: 2, y: 16};
+  setNewMino(type?: TetriminoType) {
+    if (type) {
+      this.mino = new Tetrimino(type);
+    } else {
+      this.mino = this.nextMinos.shift() ?? new Tetrimino();
+    }
+    while (this.nextMinos.length < 3) this.nextMinos.push(new Tetrimino());
+    const x = Math.floor(this.colCount / 2) - 1;
+    const y = this.rowCount - Math.max(...this.mino.pattern.map(c => c.y)) - 1;
+    this.minoPos = {x: x, y: y};
   }
 
+  // FIXME: 実装し直し
   rotate() {
-    this.mino.rotate();
-    console.log(this.renderCells);
+    const mino = new Tetrimino(this.mino.type);
+    mino.rotateState = this.mino.rotateState;
+    mino.rotate();
+
+    if (this.canPutMino(this.minoPos, mino)) {
+      this.mino = mino;
+      return true;
+    }
+
+    const r = mino.rotateState;
+
+    // https://tetrisch.github.io/main/srs.html の通りに実装
+    if (mino.type == "I") {
+      // step 1
+      let p = {...this.minoPos};
+      if (r == 0) p.x -= 2;
+      else if (r == 1) p.x -= 2;
+      else if (r == 2) p.x -= 1;
+      else if (r == 3) p.x += 2;
+      if (this.canPutMino(p, mino)) {
+        this.mino = mino;
+        this.minoPos = p;
+        return true;
+      }
+
+      // step2
+      p = {...this.minoPos};
+      if (r == 0) p.x += 1;
+      else if (r == 1) p.x += 1;
+      else if (r == 2) p.x += 2;
+      else if (r == 3) p.x -= 1;
+      if (this.canPutMino(p, mino)) {
+        this.mino = mino;
+        this.minoPos = p;
+        return true;
+      }
+
+      // step3
+      p = {...this.minoPos};
+      if (r == 0) {
+        p.x += 1;
+        p.y -= 2;
+      } else if (r == 1) {
+        p.x -= 2;
+        p.y -= 1;
+      } else if (r == 2) {
+        p.x -= 1;
+        p.y += 2;
+      } else if (r == 3) {
+        p.x += 2;
+        p.y += 1;
+      }
+      if (this.canPutMino(p, mino)) {
+        this.mino = mino;
+        this.minoPos = p;
+        return true;
+      }
+
+      // step4
+      p = {...this.minoPos};
+      if (r == 0) {
+        p.x -= 2;
+        p.y += 1;
+      } else if (r == 1) {
+        p.x += 1;
+        p.y += 2;
+      } else if (r == 2) {
+        p.x += 2;
+        p.y -= 1;
+      } else if (r == 3) {
+        p.x -= 1;
+        p.y -= 2;
+      }
+      if (this.canPutMino(p, mino)) {
+        this.mino = mino;
+        this.minoPos = p;
+        return true;
+      }
+    } else {
+      let p = {...this.minoPos};
+
+      // step 1
+      if (r == 0) p.x -= 1;
+      else if (r == 1) p.x -= 1;
+      else if (r == 2) p.x += 1;
+      else if (r == 3) p.x += 1;
+      if (this.canPutMino(p, mino)) {
+        this.mino = mino;
+        this.minoPos = p;
+        return true;
+      }
+
+      // step 2
+      if (r == 1 || r == 3) p.y += 1;
+      else if (r == 2 || r == 4) p.y -= 1;
+      if (this.canPutMino(p, mino)) {
+        this.mino = mino;
+        this.minoPos = p;
+        return true;
+      }
+
+      // step 3
+      p = {...this.minoPos};
+      if (r == 1 || r == 3) p.y += 2;
+      else if (r == 2 || r == 4) p.y -= 2;
+      if (this.canPutMino(p, mino)) {
+        this.mino = mino;
+        this.minoPos = p;
+        return true;
+      }
+
+      // step 4
+      if (r == 0) p.x -= 1;
+      else if (r == 1) p.x -= 1;
+      else if (r == 2) p.x += 1;
+      else if (r == 3) p.x += 1;
+      if (this.canPutMino(p, mino)) {
+        this.mino = mino;
+        this.minoPos = p;
+        return true;
+      }
+    }
+
+    return false;
   }
 
-  canPutMino(at: Coordinate) {
-    for(const c of this.mino.pattern) {
+  canPutMino(at: Coordinate, mino: Tetrimino = this.mino) {
+    for(const c of mino.pattern) {
       const p = add(c, at);
       const [x, y] = [p.x, p.y];
       if (x < 0 || x >= this.colCount) return false;
@@ -55,9 +195,8 @@ export class Board {
     return true;
   }
 
-  // FIXME: すりぬけ問題
   ghostMinoPos() {
-    let bestPos = this.minoPos;
+    let bestPos;
     for (let y = this.minoPos.y; y > -3; y--) {
       const putAt = {x: this.minoPos.x, y: y};
       if (this.canPutMino(putAt)) bestPos = putAt;
@@ -74,18 +213,23 @@ export class Board {
     };
     if (this.canPutMino(to)) {
       this.minoPos = to;
+      return true;
     }
+    return false;
   }
 
   hold() {
+    if (!this.canHold) return false;
     if (this.holdMino) {
       const temp = this.mino;
-      this.generateMino(this.holdMino.type);
+      this.setNewMino(this.holdMino.type);
       this.holdMino = temp;
     } else {
       this.holdMino = this.mino;
-      this.generateMino();
+      this.setNewMino();
     }
+    this.canHold = false;
+    return true;
   }
 
   verticalMove(dy: number): boolean {
@@ -102,12 +246,16 @@ export class Board {
 
   confirm() {
     const go = this.ghostMinoPos();
-    if (!go) return;
+    if (!go) {
+      this.isOver = true;
+      return;
+    }
     for (const c of this.mino.pattern) {
       this.cells[go.y + c.y][go.x + c.x] = this.mino.type;
     }
     this.clearLines();
-    this.generateMino();
+    this.setNewMino();
+    this.canHold = true;
   }
 
   clearLines() {
@@ -116,6 +264,10 @@ export class Board {
     for (let i = 0; i < linesToAddCount; i++) {
       this.cells.push(new Array(this.colCount).fill("_"));
     }
+  }
+
+  #isInBoard(c: Coordinate) {
+    return c.x >= 0 && c.x < this.colCount && c.y >= 0 && c.y < this.rowCount;
   }
 
   get renderCells() {
@@ -130,12 +282,16 @@ export class Board {
     // ゴーストのほうが優先順位ひくい
     const go = this.ghostMinoPos();
     if (go) for (const c of this.mino.pattern) {
-      cells[go.y + c.y][go.x + c.x] = cellColors["ghost"];
+      const p = add(go, c);
+      if (this.#isInBoard(p))
+        cells[p.y][p.x] = cellColors["ghost"];
     }
 
     const o = this.minoPos;
     for (const c of this.mino.pattern) {
-      cells[o.y + c.y][o.x + c.x] = this.mino.color;
+      const p = add(o, c);
+      if (this.#isInBoard(p))
+        cells[p.y][p.x] = this.mino.color;
     }
 
     return cells.reverse();

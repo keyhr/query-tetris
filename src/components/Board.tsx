@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { Board, cellColors } from "../models/board";
-import { add, compare } from "../models/coordinate";
 import { tetriminoColors } from "../models/tetrimino";
 
 interface BoardProps {
+  viewWidth?: number;
   board: Board;
   blockSize?: number;
 }
 
 export const BoardViewer = (props: BoardProps): JSX.Element => {
-  const blockSize = props.blockSize ?? 30;
+  const blockSize = props.viewWidth ? props.viewWidth / props.board.colCount : 30;
 
   const [board] = useState(props.board);
 

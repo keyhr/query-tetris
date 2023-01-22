@@ -1,0 +1,11 @@
+html,
+body {
+  overflow: hidden;
+}
+
+#root {
+  position: fixed;
+  left: 100px;
+  top: 100px;
+  z-index: 100 !important;
+}
