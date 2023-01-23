@@ -1,6 +1,6 @@
 /** @type {import('webpack').Configuration} */
 module.exports = {
-  "mode": "development",
+  "mode": "production",
   "entry": "./src/main.tsx",
   "output": {
     "path": `${__dirname}/dist`,

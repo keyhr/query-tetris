@@ -10,17 +10,22 @@ function sleep(duration: number) {
 }
 
 export const Game = (): JSX.Element => {
-  const board = new Board();
+  const [board] = useState(new Board());
 
   // TODO: Gameコンポーネント内のStateを書き換えることでre-renderingしているが、これが実用サービスで通用するとは思えないからもっと考える。
   const [, setCells] = useState(board.renderCells);
+
+  // unit: 1/60 G
+  const [speed, setSpeed] = useState(1);
+
   const isStuck = useRef(false);
+  const isSoftDropping = useRef(false);
   const intervalId = useRef<NodeJS.Timer>();
 
   useEffect(() => {
     document.addEventListener("keydown", (ev) => {
-      const renderKeyList = ["KeyR", "Space", "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"];
-      if (ev.code == "KeyR" || ev.code == "Space") {
+      const renderKeyList = ["KeyR", "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"];
+      if (ev.code == "KeyR") {
         board.rotate();
       } else if (ev.code == "KeyH") {
         if (!board.hold()) return;
@@ -37,30 +42,54 @@ export const Game = (): JSX.Element => {
         resetDrop();
       } else if (ev.code == "ArrowDown") {
         // soft-drop
-        board.verticalMove(-1);
+        if (!isSoftDropping.current) startSoftDrop();
       }
       if (renderKeyList.includes(ev.code)) setCells(board.renderCells);
+    });
+
+    document.addEventListener("keyup", (ev) => {
+      if (ev.code == "ArrowDown") {
+        stopSoftDrop();
+      }
     });
 
     startDrop();
   }, []);
 
+  useEffect(() => resetDrop, [speed]);
+
+  useEffect(() => {
+    if (board.isOver) {
+      console.log("Game Over");
+      stopDrop();
+    }
+  });
+
+  const startSoftDrop = () => {
+    isSoftDropping.current = true;
+    stopDrop();
+    intervalId.current = setInterval(() => {
+      if (!board.verticalMove(-1)) {
+        handleStack();
+      }
+      setCells(board.renderCells);
+    }, speed * 50);
+  };
+
+  const stopSoftDrop = () => {
+    isSoftDropping.current = false;
+    clearInterval(intervalId.current);
+    startDrop();
+  };
+
   const startDrop = () => {
     isStuck.current = false;
     intervalId.current = setInterval(() => {
       if (!board.verticalMove(-1)) {
-        stopDrop();
-        isStuck.current = true;
-        sleep(500).then(() => {
-          if (isStuck) {
-            board.confirm();
-            setCells(board.renderCells);
-            resetDrop();
-          }
-        });
+        handleStack();
       }
       setCells(board.renderCells);
-    }, 1000);
+    }, speed * 1000);
   };
 
   const stopDrop = () => {
@@ -73,12 +102,32 @@ export const Game = (): JSX.Element => {
     startDrop();
   };
 
+  const handleStack = () => {
+    console.log("stuck!");
+    stopDrop();
+    isStuck.current = true;
+    sleep(500).then(() => {
+      if (isStuck) {
+        board.confirm();
+        setCells(board.renderCells);
+        resetDrop();
+      }
+    });
+  };
+
   return (
-    <div id="game">
+    <div id="game" style={{
+      display: "flex",
+      justifyContent: "stretch",
+    }}>
       <BoardViewer
         board={board}
+        viewWidth={300}
       />
-      {/* <GamePanel /> */}
+      <GamePanel
+        board={board}
+        viewWidth={120}
+      />
     </div>
   );
 };

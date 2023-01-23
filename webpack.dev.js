@@ -10,5 +10,6 @@ config.devServer = {
   },
   "port": 3000,
 };
+config.ignoreWarnings = [/./];
 
 module.exports = config;

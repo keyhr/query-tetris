@@ -16,7 +16,7 @@ module.exports = {
     "plugin:@typescript-eslint/recommended",
   ],
   plugins: [
-    "react-hooks"
+    "react-hooks",
   ],
   ignorePatterns: ["dist"],
   rules: {
@@ -26,6 +26,7 @@ module.exports = {
     indent: ["error", 2],
     "semi": ["error", "always"],
     "comma-spacing": ["error", { "before": false, "after": true }],
+    "comma-dangle": ["error", "always-multiline"],
     "react-hooks/rules-of-hooks": "error",
     "react-hooks/exhaustive-deps": "warn",
   },

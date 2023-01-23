@@ -1,4 +1,51 @@
+@import url("https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@800&display=swap");
+
+html {
+  font-family: "Saira Condensed", sans-serif;
+}
+
 #app {
-  width: 100%;
-  height: 100%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin-right: 50%;
+  transform: translate(-50%, -50%);
+
+  // outline: #aaaaaa 5px solid;
+}
+
+// #game {
+//   display: flex;
+// }
+
+$outline-width: 20px;
+
+.outline {
+  outline: #bbbbbb $outline-width solid;
+  margin: $outline-width;
+  margin-left: 0;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.content-center > * {
+  margin: 0 auto;
+}
+
+.bg-1 {
+  background-color: #bbbbbb;
+}
+
+.z-h {
+  z-index: 100;
+}
+
+.z-n {
+  z-index: -1;
+}
+
+.pos-rel {
+  position: relative;
 }

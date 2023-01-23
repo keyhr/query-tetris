@@ -34,12 +34,19 @@ export const BoardViewer = (props: BoardProps): JSX.Element => {
   const renderBoard = () => {
     if (!context) return;
 
+    const cells = board.renderCells;
+
     for (let y = 0; y < board.rowCount; y++)
       for (let x = 0; x < board.colCount; x++) {
-        const color = board.renderCells[y][x];
+        const color = cells[y][x];
 
         context.fillStyle = color;
-        context.strokeStyle = tetriminoColors._;
+        context.strokeStyle = "#bbbbbb";
+        context.lineWidth = 0.1;
+        if (cells[y][x] != tetriminoColors._) {
+          context.strokeStyle = tetriminoColors._;
+          context.lineWidth = 0.5;
+        }
         context.fillRect(
           x * blockSize,
           y * blockSize,
@@ -50,10 +57,10 @@ export const BoardViewer = (props: BoardProps): JSX.Element => {
           x * blockSize,
           y * blockSize,
           blockSize,
-          blockSize
+          blockSize,
         );
       }
   };
 
-  return <canvas id="game-canvas"></canvas>;
+  return <canvas id="game-canvas" className="outline"></canvas>;
 };

@@ -2,9 +2,9 @@ import React, { useEffect, useState } from "react";
 import { Tetrimino } from "../models/tetrimino";
 
 interface MinoPreviewProps {
-  size: number;
+  width: number;
   id: string;
-  mino: Tetrimino
+  mino?: Tetrimino
 }
 
 export const MinoPreview = (props: MinoPreviewProps): JSX.Element => {
@@ -16,8 +16,8 @@ export const MinoPreview = (props: MinoPreviewProps): JSX.Element => {
     const canvas = document.getElementById(domId) as HTMLCanvasElement;
     const canvasContext = canvas.getContext("2d");
 
-    canvas.width = props.size;
-    canvas.height = props.size;
+    canvas.width = props.width;
+    canvas.height = props.width * 0.8;
     setContext(canvasContext);
   }, []);
 
@@ -25,13 +25,16 @@ export const MinoPreview = (props: MinoPreviewProps): JSX.Element => {
     if (context !== null) {
       render();
     }
-  });
+  }, [context, props.mino]);
 
   const render = () => {
-    if (!context) return;
+    if (!context || !props.mino) return;
 
-    const minoBlockCount = props.mino.type == "I" ? 4 : 3;
-    const unitBlockSize = props.size / (minoBlockCount + 2);
+    props.mino.rotateState = 0;
+
+    const type = props.mino.type;
+    const minoBlockCount = type == "I" ? 4 : 3;
+    const unitBlockSize = props.width / (minoBlockCount + 2);
 
     const cells = new Array(minoBlockCount + 2);
     for (let y = 0; y < minoBlockCount + 2; y++) {
@@ -45,23 +48,26 @@ export const MinoPreview = (props: MinoPreviewProps): JSX.Element => {
       cells[c.y + 1][c.x + 1] = props.mino.color;
     }
 
-    console.log(cells);
+    cells.reverse();
+
+    context.clearRect(0, 0, unitBlockSize * 5, unitBlockSize * 5);
 
     for (let y = 0; y < minoBlockCount + 2; y++) for (let x = 0; x < minoBlockCount + 2; x++) {
       context.fillStyle = cells[y][x];
-      // context.strokeStyle = tetriminoColors._;
-      context.fillRect(
-        x * props.size,
-        y * props.size,
-        unitBlockSize,
-        unitBlockSize,
-      );
-      // context.strokeRect(
-      //   x * props.size,
-      //   y * props.size,
-      //   unitBlockSize,
-      //   unitBlockSize
-      // );
+      if (cells[y][x] == props.mino.color) {
+        context.fillRect(
+          (x + (type == "O" ? 0.5 : 0)) * unitBlockSize,
+          y * unitBlockSize,
+          unitBlockSize,
+          unitBlockSize,
+        );
+        context.strokeRect(
+          (x + (type == "O" ? 0.5 : 0)) * unitBlockSize,
+          y * unitBlockSize,
+          unitBlockSize,
+          unitBlockSize,
+        );
+      }
     }
   };
 

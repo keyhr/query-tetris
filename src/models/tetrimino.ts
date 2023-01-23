@@ -56,11 +56,11 @@ export const tetriminoBlockPatterns: {[key in TetriminoType]: C[][]} = {
     [{x: 0, y: 1}, {x: 1, y: 1}, {x: 1, y: 0}, {x: 2, y: 0}],
     [{x: 1, y: 2}, {x: 0, y: 1}, {x: 1, y: 1}, {x: 0, y: 0}],
   ],
-  "_": []
+  "_": [[], [], [], []],
 };
 
 export class Tetrimino {
-  type: TetriminoType;
+  type: TetriminoType = "_";
   rotateState = 0;
 
   get pattern() {
@@ -71,19 +71,20 @@ export class Tetrimino {
     return tetriminoColors[this.type];
   }
 
-  constructor(type?: TetriminoType) {
+  constructor(type?: TetriminoType, available?: Set<TetriminoType>) {
     if (type) {
       this.type = type;
     } else {
-      const r = Math.floor(Math.random() * 6.99);
-      if (r == 0) this.type = "I";
-      else if (r == 1) this.type = "J";
-      else if (r == 2) this.type = "L";
-      else if (r == 3) this.type = "O";
-      else if (r == 4) this.type = "S";
-      else if (r == 5) this.type = "T";
-      else if (r == 6) this.type = "Z";
-      else this.type = "_";
+      let avl: TetriminoType[];
+      if (!available) {
+        avl = ["I", "J", "L", "O", "S", "T", "Z"];
+      } else {
+        avl = [...available.values()];
+      }
+      const s = avl.length;
+      const r = Math.floor(Math.random() * (s - 0.01));
+
+      this.type = avl[r];
     }
   }
 
