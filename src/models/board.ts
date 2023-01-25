@@ -65,10 +65,8 @@ export class Board {
 
     // TODO: 一番上にきてほしい
     const x = Math.floor(this.colCount / 2) - 1;
-    const y = this.rowCount - Math.max(...this.mino.pattern.map(c => c.y)) - 1;
-    const minoPos = {x: 4, y: 17};
-
-    console.log(minoPos);
+    const y = this.rowCount + Math.min(...this.mino.pattern.map(c => c.y)) - 2;
+    const minoPos = {x: x, y: y};
 
     if (this.canPutMino(minoPos, minoToAdd, true)) {
       this.mino = minoToAdd;
@@ -94,7 +92,7 @@ export class Board {
     mino.rotateState = this.mino.rotateState;
     mino.rotate();
 
-    if (this.canPutMino(this.minoPos, mino)) {
+    if (this.canPutMino(this.minoPos, mino, true)) {
       this.mino = mino;
       return true;
     }
@@ -109,7 +107,7 @@ export class Board {
       else if (r == 1) p.x -= 2;
       else if (r == 2) p.x -= 1;
       else if (r == 3) p.x += 2;
-      if (this.canPutMino(p, mino)) {
+      if (this.canPutMino(p, mino, true)) {
         this.mino = mino;
         this.minoPos = p;
         return true;
@@ -121,7 +119,7 @@ export class Board {
       else if (r == 1) p.x += 1;
       else if (r == 2) p.x += 2;
       else if (r == 3) p.x -= 1;
-      if (this.canPutMino(p, mino)) {
+      if (this.canPutMino(p, mino, true)) {
         this.mino = mino;
         this.minoPos = p;
         return true;
@@ -142,7 +140,7 @@ export class Board {
         p.x += 2;
         p.y += 1;
       }
-      if (this.canPutMino(p, mino)) {
+      if (this.canPutMino(p, mino, true)) {
         this.mino = mino;
         this.minoPos = p;
         return true;
@@ -163,7 +161,7 @@ export class Board {
         p.x -= 1;
         p.y -= 2;
       }
-      if (this.canPutMino(p, mino)) {
+      if (this.canPutMino(p, mino, true)) {
         this.mino = mino;
         this.minoPos = p;
         return true;
@@ -176,7 +174,7 @@ export class Board {
       else if (r == 1) p.x -= 1;
       else if (r == 2) p.x += 1;
       else if (r == 3) p.x += 1;
-      if (this.canPutMino(p, mino)) {
+      if (this.canPutMino(p, mino, true)) {
         this.mino = mino;
         this.minoPos = p;
         return true;
@@ -185,7 +183,7 @@ export class Board {
       // step 2
       if (r == 1 || r == 3) p.y += 1;
       else if (r == 2 || r == 4) p.y -= 1;
-      if (this.canPutMino(p, mino)) {
+      if (this.canPutMino(p, mino, true)) {
         this.mino = mino;
         this.minoPos = p;
         return true;
@@ -195,7 +193,7 @@ export class Board {
       p = {...this.minoPos};
       if (r == 1 || r == 3) p.y += 2;
       else if (r == 2 || r == 4) p.y -= 2;
-      if (this.canPutMino(p, mino)) {
+      if (this.canPutMino(p, mino, true)) {
         this.mino = mino;
         this.minoPos = p;
         return true;
@@ -206,7 +204,7 @@ export class Board {
       else if (r == 1) p.x -= 1;
       else if (r == 2) p.x += 1;
       else if (r == 3) p.x += 1;
-      if (this.canPutMino(p, mino)) {
+      if (this.canPutMino(p, mino, true)) {
         this.mino = mino;
         this.minoPos = p;
         return true;
@@ -220,9 +218,9 @@ export class Board {
     for(const c of mino.pattern) {
       const p = add(c, at);
       const [x, y] = [p.x, p.y];
-      if (x < 0 || x >= this.colCount + (acceptOverflow ? 3 : 0)) return false;
+      if (x < 0 || x >= this.colCount) return false;
       if (y < 0 || y >= this.rowCount + (acceptOverflow ? 3 : 0)) return false;
-      if (this.cells[y][x] != "_") return false;
+      if (x < this.colCount && y < this.rowCount && this.cells[y][x] != "_") return false;
     }
     return true;
   }
@@ -232,7 +230,7 @@ export class Board {
     for (let y = this.minoPos.y; y > -3; y--) {
       const putAt = {x: this.minoPos.x, y: y};
       if (this.canPutMino(putAt)) bestPos = putAt;
-      else break;
+      else if (!this.canPutMino(putAt, undefined, true)) break;
     }
     return bestPos;
   }
@@ -243,7 +241,7 @@ export class Board {
       x: this.minoPos.x + dx,
       y: this.minoPos.y,
     };
-    if (this.canPutMino(to)) {
+    if (this.canPutMino(to, undefined, true)) {
       this.minoPos = to;
       return true;
     }

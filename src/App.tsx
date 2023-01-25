@@ -1,16 +1,67 @@
-import React, { useEffect, useState } from "react";
+import React, { useReducer } from "react";
 import "./style.scss";
 import { Game } from "./components/Game";
-import { MinoPreview } from "./components/MinoPreview";
-import { Tetrimino } from "./models/tetrimino";
 import { Board } from "./models/board";
 
+export interface State {
+  board: Board;
+  cells: string[][];
+  fallSpeed: number;  // unit: 1/60 G
+  isOver: boolean;
+}
+
+const createNewState = (): State => {
+  return {
+    board: new Board(),
+    cells: [],
+    fallSpeed: 1,
+    isOver: false,
+  };
+};
+
+export type Action =
+  | {
+    type: "noticeBoardChange",
+  }
+  | {
+    type: "setIsOver",
+    payload: { isOver: boolean }
+  }
+  | {
+    type: "changeFallSpeed",
+    payload: { to: number }
+  }
+  | {
+    type: "restart",
+  }
+
+
+const reducer = (state: State, action: Action): State => {
+  switch (action.type) {
+  case "noticeBoardChange":
+    return {
+      ...state,
+      cells: state.board.renderCells,
+    };
+  case "changeFallSpeed":
+    return {
+      ...state,
+      fallSpeed: action.payload.to,
+    };
+  case "setIsOver":
+    return {
+      ...state,
+      isOver: action.payload.isOver,
+    };
+  case "restart":
+    return createNewState();
+  }
+};
+
 export const App: React.FC = () => {
-  const [board, setBoard] = useState(new Board());
-  // TODO: Gameコンポーネント内のStateを書き換えることでre-renderingしているが、これが実用サービスで通用するとは思えないからもっと考える。
-  const [, setCells] = useState(board.renderCells);
+  const [state, dispatch] = useReducer(reducer, createNewState());
 
   return <div id="app">
-    <Game board={board} setCells={setCells}/>
+    <Game state={state} dispatch={dispatch}/>
   </div>;
 };

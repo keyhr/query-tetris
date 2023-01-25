@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { Board, cellColors } from "../models/board";
+import { Board } from "../models/board";
 import { tetriminoColors } from "../models/tetrimino";
 
 interface BoardProps {
-  viewWidth?: number;
   board: Board;
-  blockSize?: number;
+  size: {
+    width: number,
+    height: number,
+  },
 }
 
 export const BoardViewer = (props: BoardProps): JSX.Element => {
-  const blockSize = props.viewWidth ? props.viewWidth / props.board.colCount : 30;
-
-  const [board] = useState(props.board);
+  const [board, setBoard] = useState(props.board);
 
   const [context, setContext] = useState<CanvasRenderingContext2D | null>(null);
 
@@ -19,8 +19,8 @@ export const BoardViewer = (props: BoardProps): JSX.Element => {
     const canvas = document.getElementById("game-canvas") as HTMLCanvasElement;
     const canvasContext = canvas.getContext("2d");
 
-    canvas.width = blockSize * board.colCount;
-    canvas.height = blockSize * board.rowCount;
+    canvas.width = props.size.width;
+    canvas.height = props.size.height;
 
     setContext(canvasContext);
   }, []);
@@ -31,10 +31,19 @@ export const BoardViewer = (props: BoardProps): JSX.Element => {
     }
   }, [context, board.renderCells]);
 
+  useEffect(() => {
+    setBoard(props.board);
+  }, [props.board]);
+
   const renderBoard = () => {
     if (!context) return;
 
     const cells = board.renderCells;
+
+    const blockSize = {
+      width: props.size.width / board.colCount,
+      height: props.size.height / board.rowCount,
+    };
 
     for (let y = 0; y < board.rowCount; y++)
       for (let x = 0; x < board.colCount; x++) {
@@ -48,16 +57,16 @@ export const BoardViewer = (props: BoardProps): JSX.Element => {
           context.lineWidth = 0.5;
         }
         context.fillRect(
-          x * blockSize,
-          y * blockSize,
-          blockSize,
-          blockSize,
+          x * blockSize.width,
+          y * blockSize.height,
+          blockSize.width,
+          blockSize.height,
         );
         context.strokeRect(
-          x * blockSize,
-          y * blockSize,
-          blockSize,
-          blockSize,
+          x * blockSize.width,
+          y * blockSize.height,
+          blockSize.width,
+          blockSize.height,
         );
       }
   };

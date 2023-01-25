@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { BoardViewer } from "./Board";
-import { Board } from "../models/board";
 import { GamePanel } from "./GamePanel";
+import { Action, State } from "../App";
 
 function sleep(duration: number) {
   return new Promise((resolve) => {
@@ -10,16 +10,14 @@ function sleep(duration: number) {
 }
 
 interface GameProps {
-  board: Board;
-  setCells: React.Dispatch<React.SetStateAction<string[][]>>;
+  state: State;
+  dispatch: React.Dispatch<Action>
 }
 
 export const Game = (props: GameProps): JSX.Element => {
-  const board = props.board;
-  const setCells = props.setCells;
+  const speed = props.state.fallSpeed;
 
-  // unit: 1/60 G
-  const [speed, setSpeed] = useState(1);
+  // console.log(board);
 
   const acceptKeyInput = useRef(true);
 
@@ -27,9 +25,15 @@ export const Game = (props: GameProps): JSX.Element => {
   const isSoftDropping = useRef(false);
   const intervalId = useRef<NodeJS.Timer>();
 
+  const rerenderBoard = () => {
+    props.dispatch({ type: "noticeBoardChange" });
+  };
+
   useEffect(() => {
     document.addEventListener("keydown", (ev) => {
       if (!acceptKeyInput.current) return;
+
+      const board = props.state.board;
 
       const renderKeyList = ["KeyR", "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"];
       if (ev.code == "KeyR") {
@@ -51,7 +55,7 @@ export const Game = (props: GameProps): JSX.Element => {
         // soft-drop
         if (!isSoftDropping.current) startSoftDrop();
       }
-      if (renderKeyList.includes(ev.code)) setCells(board.renderCells);
+      if (renderKeyList.includes(ev.code)) rerenderBoard();
     });
 
     document.addEventListener("keyup", (ev) => {
@@ -61,14 +65,19 @@ export const Game = (props: GameProps): JSX.Element => {
     });
 
     startDrop();
-  }, []);
+  }, [props.state.board]);
 
-  useEffect(() => resetDrop, [speed]);
+  useEffect(() => resetDrop(), [props.state.board, speed]);
 
   useEffect(() => {
-    if (board.isOver) {
-      console.log("Game Over");
+    if (props.state.board.isOver) {
       stopDrop();
+      if (!props.state.isOver){
+        props.dispatch({
+          type: "setIsOver",
+          payload: { isOver: true },
+        });
+      }
     }
   });
 
@@ -76,11 +85,11 @@ export const Game = (props: GameProps): JSX.Element => {
     isSoftDropping.current = true;
     stopDrop();
     intervalId.current = setInterval(() => {
-      if (!board.verticalMove(-1)) {
+      if (!props.state.board.verticalMove(-1)) {
         handleStuck();
       }
-      setCells(board.renderCells);
-    }, 20000 / speed);
+      rerenderBoard();
+    }, 50 / speed);
   };
 
   const stopSoftDrop = () => {
@@ -92,10 +101,11 @@ export const Game = (props: GameProps): JSX.Element => {
   const startDrop = () => {
     isStuck.current = false;
     intervalId.current = setInterval(() => {
-      if (!board.verticalMove(-1)) {
+      // console.log(props.state.board);
+      if (!props.state.board.verticalMove(-1)) {
         handleStuck();
       }
-      setCells(board.renderCells);
+      rerenderBoard();
     }, 1000 / speed);
   };
 
@@ -105,36 +115,70 @@ export const Game = (props: GameProps): JSX.Element => {
 
   const resetDrop = () => {
     stopDrop();
-    setCells(board.renderCells);
+    rerenderBoard();
     startDrop();
   };
 
   const handleStuck = () => {
-    console.log("stuck!");
     stopDrop();
     isStuck.current = true;
     sleep(500).then(() => {
       if (isStuck) {
-        board.confirm();
-        setCells(board.renderCells);
-        resetDrop();
+        props.state.board.confirm();
+        rerenderBoard();
+        if (!props.state.isOver) resetDrop();
       }
     });
   };
 
-  return (
+  const restart = () => {
+    props.dispatch({ type: "restart" });
+    isStuck.current = false;
+  };
+
+  return (<div>
+    {props.state.isOver && <div style={{
+      position: "fixed",
+      backgroundColor: "rgba(0,0,0,0.7)",
+      width: 480,
+      height: "100%",
+      left: -20,
+      color: "white",
+    }}>
+      <div style={{
+        fontSize: 40,
+        position: "relative",
+        top: "50%",
+        left: "50%",
+        transform: "translate(-50%, -50%)",
+        marginRight: "50%",
+        textAlign: "center",
+      }}>
+        <div>GAME OVER</div>
+        <div className="button" onClick={restart} style={{
+          marginTop: 20,
+          borderRadius: 20,
+        }}>Retry</div>
+      </div>
+    </div>}
     <div id="game" style={{
       display: "flex",
       justifyContent: "stretch",
     }}>
       <BoardViewer
-        board={board}
-        viewWidth={300}
+        board={props.state.board}
+        size={{
+          width: 300,
+          height: 600,
+        }}
       />
       <GamePanel
-        board={board}
-        viewWidth={120}
+        board={props.state.board}
+        size={{
+          width: 120,
+          height: 600,
+        }}
       />
     </div>
-  );
+  </div>);
 };

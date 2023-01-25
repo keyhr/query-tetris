@@ -2,8 +2,11 @@ import React, { useEffect, useState } from "react";
 import { Tetrimino } from "../models/tetrimino";
 
 interface MinoPreviewProps {
-  width: number;
   id: string;
+  size: {
+    width: number,
+    height: number,
+  };
   mino?: Tetrimino
 }
 
@@ -16,8 +19,8 @@ export const MinoPreview = (props: MinoPreviewProps): JSX.Element => {
     const canvas = document.getElementById(domId) as HTMLCanvasElement;
     const canvasContext = canvas.getContext("2d");
 
-    canvas.width = props.width;
-    canvas.height = props.width * 0.8;
+    canvas.width = props.size.width;
+    canvas.height = props.size.width * 0.8;
     setContext(canvasContext);
   }, []);
 
@@ -34,7 +37,7 @@ export const MinoPreview = (props: MinoPreviewProps): JSX.Element => {
 
     const type = props.mino.type;
     const minoBlockCount = type == "I" ? 4 : 3;
-    const unitBlockSize = props.width / (minoBlockCount + 2);
+    const unitBlockSize = props.size.width / (minoBlockCount + 2);
 
     const cells = new Array(minoBlockCount + 2);
     for (let y = 0; y < minoBlockCount + 2; y++) {
