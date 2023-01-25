@@ -4,24 +4,24 @@ module.exports = {
   "entry": "./src/main.tsx",
   "output": {
     "path": `${__dirname}/dist`,
-    "filename": "bundle.js"
+    "filename": "bundle.js",
   },
   "module": {
     "rules": [
       {
         test: /\.tsx?$/,
-        use: "ts-loader"
+        use: "ts-loader",
       },
       {
         test: /\.scss$/,
-        use: [ "style-loader", "css-loader", "sass-loader" ]
-      }
-    ]
+        use: [ "style-loader", "css-loader", "sass-loader" ],
+      },
+    ],
   },
   "plugins": [
   ],
   "resolve": {
-    "extensions": [".ts", ".tsx", ".js", ".json"]
+    "extensions": [".ts", ".tsx", ".js", ".json"],
   },
-  "target": ["web", "es5"]
+  "target": ["web", "es5"],
 };

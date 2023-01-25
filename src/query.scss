@@ -5,7 +5,8 @@ body {
 
 #root {
   position: fixed;
-  left: 100px;
-  top: 100px;
-  z-index: 100 !important;
+  left: 50%;
+  top: 50%;
+  transform: translate(50%, 50%);
+  margin-right: 50%;
 }

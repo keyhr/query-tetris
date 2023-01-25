@@ -9,14 +9,19 @@ function sleep(duration: number) {
   });
 }
 
-export const Game = (): JSX.Element => {
-  const [board] = useState(new Board());
+interface GameProps {
+  board: Board;
+  setCells: React.Dispatch<React.SetStateAction<string[][]>>;
+}
 
-  // TODO: Gameコンポーネント内のStateを書き換えることでre-renderingしているが、これが実用サービスで通用するとは思えないからもっと考える。
-  const [, setCells] = useState(board.renderCells);
+export const Game = (props: GameProps): JSX.Element => {
+  const board = props.board;
+  const setCells = props.setCells;
 
   // unit: 1/60 G
   const [speed, setSpeed] = useState(1);
+
+  const acceptKeyInput = useRef(true);
 
   const isStuck = useRef(false);
   const isSoftDropping = useRef(false);
@@ -24,6 +29,8 @@ export const Game = (): JSX.Element => {
 
   useEffect(() => {
     document.addEventListener("keydown", (ev) => {
+      if (!acceptKeyInput.current) return;
+
       const renderKeyList = ["KeyR", "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"];
       if (ev.code == "KeyR") {
         board.rotate();
@@ -32,10 +39,10 @@ export const Game = (): JSX.Element => {
         resetDrop();
       } else if (ev.code == "ArrowLeft") {
         board.horizontalMove("left");
-        if (isStuck) resetDrop();
+        if (isStuck.current) resetDrop();
       } else if (ev.code == "ArrowRight") {
         board.horizontalMove("right");
-        if (isStuck) resetDrop();
+        if (isStuck.current) resetDrop();
       } else if (ev.code == "ArrowUp") {
         // hard-drop
         board.confirm();
@@ -70,10 +77,10 @@ export const Game = (): JSX.Element => {
     stopDrop();
     intervalId.current = setInterval(() => {
       if (!board.verticalMove(-1)) {
-        handleStack();
+        handleStuck();
       }
       setCells(board.renderCells);
-    }, speed * 50);
+    }, 20000 / speed);
   };
 
   const stopSoftDrop = () => {
@@ -86,10 +93,10 @@ export const Game = (): JSX.Element => {
     isStuck.current = false;
     intervalId.current = setInterval(() => {
       if (!board.verticalMove(-1)) {
-        handleStack();
+        handleStuck();
       }
       setCells(board.renderCells);
-    }, speed * 1000);
+    }, 1000 / speed);
   };
 
   const stopDrop = () => {
@@ -102,7 +109,7 @@ export const Game = (): JSX.Element => {
     startDrop();
   };
 
-  const handleStack = () => {
+  const handleStuck = () => {
     console.log("stuck!");
     stopDrop();
     isStuck.current = true;

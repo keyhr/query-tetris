@@ -13,4 +13,5 @@
         "editor.defaultFormatter": "dbaeumer.vscode-eslint"
     },
     "editor.tabSize": 2,
+    "debug.allowBreakpointsEverywhere": true,
 }

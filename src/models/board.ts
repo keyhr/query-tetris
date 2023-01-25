@@ -14,11 +14,7 @@ export class Board {
   colCount: number;
   rowCount: number;
 
-  nextMinos: Tetrimino[] = [
-    new Tetrimino(),
-    new Tetrimino(),
-    new Tetrimino(),
-  ];
+  nextMinos: Tetrimino[] = [];
   minoAvailableSet: Set<TetriminoType> = new Set();
 
   mino: Tetrimino = new Tetrimino();
