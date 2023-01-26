@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import { BoardViewer } from "./Board";
 import { GamePanel } from "./GamePanel";
 import { Action, State } from "../App";
@@ -15,10 +15,6 @@ interface GameProps {
 }
 
 export const Game = (props: GameProps): JSX.Element => {
-  const speed = props.state.fallSpeed;
-
-  // console.log(board);
-
   const acceptKeyInput = useRef(true);
 
   const isStuck = useRef(false);
@@ -49,7 +45,7 @@ export const Game = (props: GameProps): JSX.Element => {
         if (isStuck.current) resetDrop();
       } else if (ev.code == "ArrowUp") {
         // hard-drop
-        board.confirm();
+        confirm();
         resetDrop();
       } else if (ev.code == "ArrowDown") {
         // soft-drop
@@ -65,9 +61,13 @@ export const Game = (props: GameProps): JSX.Element => {
     });
 
     startDrop();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.state.board]);
 
-  useEffect(() => resetDrop(), [props.state.board, speed]);
+  useEffect(() => {
+    resetDrop();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.state.board, props.state.fallSpeed]);
 
   useEffect(() => {
     if (props.state.board.isOver) {
@@ -89,7 +89,7 @@ export const Game = (props: GameProps): JSX.Element => {
         handleStuck();
       }
       rerenderBoard();
-    }, 50 / speed);
+    }, 50 / props.state.fallSpeed);
   };
 
   const stopSoftDrop = () => {
@@ -106,7 +106,7 @@ export const Game = (props: GameProps): JSX.Element => {
         handleStuck();
       }
       rerenderBoard();
-    }, 1000 / speed);
+    }, 1000 / props.state.fallSpeed);
   };
 
   const stopDrop = () => {
@@ -124,11 +124,26 @@ export const Game = (props: GameProps): JSX.Element => {
     isStuck.current = true;
     sleep(500).then(() => {
       if (isStuck) {
-        props.state.board.confirm();
+        confirm();
+
+        // 自動確定したあとに、上キーで落ちてこないようにしたい
+        acceptKeyInput.current = false;
+        sleep(150).then(() => {
+          acceptKeyInput.current = true;
+        });
+
         rerenderBoard();
         if (!props.state.isOver) resetDrop();
       }
     });
+  };
+
+  const confirm = () => {
+    const board = props.state.board;
+    board.confirm();
+    props.dispatch({type: "changeFallSpeed", payload: {
+      to: Math.floor(board.score / 20) * 0.2  + 1,
+    }});
   };
 
   const restart = () => {
@@ -154,7 +169,7 @@ export const Game = (props: GameProps): JSX.Element => {
         marginRight: "50%",
         textAlign: "center",
       }}>
-        <div>GAME OVER</div>
+        <div style={{width: "100%"}}>GAME OVER</div>
         <div className="button" onClick={restart} style={{
           marginTop: 20,
           borderRadius: 20,

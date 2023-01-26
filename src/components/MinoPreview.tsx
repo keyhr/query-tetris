@@ -22,12 +22,15 @@ export const MinoPreview = (props: MinoPreviewProps): JSX.Element => {
     canvas.width = props.size.width;
     canvas.height = props.size.width * 0.8;
     setContext(canvasContext);
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     if (context !== null) {
       render();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [context, props.mino]);
 
   const render = () => {

@@ -1,4 +1,4 @@
-import { Coordinate as C, Coordinate } from "./coordinate";
+import { Coordinate as C } from "./coordinate";
 
 export type TetriminoType = "I" | "O" | "S" | "Z" | "J" | "L" | "T" | "_";
 
